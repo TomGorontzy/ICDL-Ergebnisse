@@ -31,6 +31,7 @@ $specFile = Join-Path $PSScriptRoot 'ICDL-Ergebnisse.spec'
 $distRoot = Join-Path $projectRoot 'dist'
 $rawExe = Join-Path $distRoot 'ICDL-Ergebnisse.exe'
 $docsDir = Join-Path $projectRoot 'docs'
+$demoDir = Join-Path $projectRoot 'demo'
 $archiveDir = Join-Path $projectRoot 'archive'
 $versionFile = Join-Path $projectRoot 'build-version.json'
 $releaseDir = Join-Path $projectRoot 'release'
@@ -268,6 +269,16 @@ if (Test-Path $docsDir) {
     Write-Host "3) Dokumentation kopiert nach: $targetDocs" -ForegroundColor Green
 }
 
+$targetDemo = Join-Path $buildDir 'demo'
+New-Item -ItemType Directory -Path $targetDemo -Force | Out-Null
+if (Test-Path $demoDir) {
+    Copy-Item -Path (Join-Path $demoDir '*') -Destination $targetDemo -Recurse -Force
+    Write-Host "3b) Demo-Dateien kopiert nach: $targetDemo" -ForegroundColor Green
+}
+else {
+    Write-Host "3b) Kein demo-Quellordner gefunden; leerer demo-Ordner im Build angelegt." -ForegroundColor DarkGray
+}
+
 $archiveIncluded = $false
 $targetArchive = Join-Path $buildDir 'archive'
 New-Item -ItemType Directory -Path $targetArchive -Force | Out-Null
@@ -301,6 +312,13 @@ if ($SkipZip) {
 }
 else {
     New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null
+    $releasePackageDir = Join-Path $releaseDir $buildDirName
+    if (Test-Path $releasePackageDir) {
+        Remove-Item -Path $releasePackageDir -Recurse -Force
+    }
+    New-Item -ItemType Directory -Path $releasePackageDir -Force | Out-Null
+    Copy-Item -Path (Join-Path $buildDir '*') -Destination $releasePackageDir -Recurse -Force
+
     $zipPath = Join-Path $releaseDir ($buildDirName + '.zip')
 
     if (Test-Path $zipPath) {
@@ -308,7 +326,7 @@ else {
     }
 
     # ZIP ohne Wrapper-Ordner (Explorer-kompatibel): Inhalt des Build-Ordners archivieren.
-    Compress-Archive -Path (Join-Path $buildDir '*') -DestinationPath $zipPath -CompressionLevel Optimal -Force
+    Compress-Archive -Path (Join-Path $releasePackageDir '*') -DestinationPath $zipPath -CompressionLevel Optimal -Force
     $null = New-ReleaseNotesFile `
         -Version $version `
         -BuildDirName $buildDirName `
