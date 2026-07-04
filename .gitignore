@@ -27,6 +27,10 @@ release/*
 logs/
 *.log
 
+# Lokal erzeugte Export-Dateien
+/ICDL-Ergebnisse_*.xlsx
+/src/ICDL-Ergebnisse_*.xlsx
+
 # OS/Editor
 .DS_Store
 Thumbs.db
