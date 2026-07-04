@@ -1,4 +1,4 @@
-﻿# Release Notes v3.0
+﻿# Release Notes v3.1
 
 Datum: 2026-07-04
 
@@ -24,22 +24,22 @@ Datum: 2026-07-04
 
 ## Artefakte
 
-- Build-Verzeichnis: dist/ICDL-Ergebnisse-v3.0/
-- EXE: dist/ICDL-Ergebnisse-v3.0/ICDL-Ergebnisse.exe
+- Build-Verzeichnis: dist/ICDL-Ergebnisse-v3.1/
+- EXE: dist/ICDL-Ergebnisse-v3.1/ICDL-Ergebnisse.exe
 - Dokumentation: dist/<Build>/docs/
-- Archivdaten: dist/ICDL-Ergebnisse-v3.0/archive/
-- Release-ZIP: release/ICDL-Ergebnisse-v3.0.zip
+- Archivdaten: dist/ICDL-Ergebnisse-v3.1/archive/
+- Release-ZIP: release/ICDL-Ergebnisse-v3.1.zip
 
 ## Enthaltene Commits (aktuelle Historie)
 
+- `b645250` fix: consolidate root exports into archive
+- `08a4354` release: v3.0
 - `df8d432` fix: archive path always relative to app directory
 - `a216f07` chore: ignore local material folder
 - `6132d0c` release: v2.9
-- `a2fcfc6` Release v2.8: Betreff nutzt CSV-Änderungsdatum inkl. Uhrzeit
-- `30d1296` Release v2.7: Betreffdatum aus neuestem Prüfungsdatum
 
 ## Technische Build-Informationen
 
-- Build-Datum: 2026-07-04 19:18:30
+- Build-Datum: 2026-07-04 19:24:57
 - Build-Modus: PyInstaller --noconfirm
 - EXE-Name: ICDL-Ergebnisse.exe
