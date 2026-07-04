@@ -117,6 +117,19 @@ def _parse_exam_date(rows: list[dict[str, str]]) -> datetime:
     return max(parsed_values)
 
 
+def _resolve_reference_datetime(csv_path: Path, rows: list[dict[str, str]]) -> datetime:
+    """Referenzzeitpunkt für Dateiname/Betreff.
+
+    Primär wird das Änderungsdatum der examinations.csv verwendet.
+    Fallback: aus CSV-Inhalten ermitteltes Prüfungsdatum.
+    """
+    try:
+        return datetime.fromtimestamp(csv_path.stat().st_mtime)
+    except Exception as exc:
+        _log_debug(f"CSV-Zeitstempel konnte nicht gelesen werden, nutze Prüfungsdatum aus Inhalten: {exc}")
+        return _parse_exam_date(rows)
+
+
 def _build_output_path(csv_path: Path) -> Path:
     mtime = datetime.fromtimestamp(csv_path.stat().st_mtime)
     file_name = f"ICDL-Ergebnisse_{mtime:%Y%m%d_%H%M%S}.xlsx"
@@ -403,7 +416,7 @@ def _create_html_table(rows: list[dict[str, str]]) -> str:
 
 
 def _create_outlook_preview_mail(rows: list[dict[str, str]], exam_date: datetime, output_xlsx: Path) -> None:
-    subject_date = exam_date.strftime("%d.%m.%Y")
+    subject_date = exam_date.strftime("%d.%m.%Y %H:%M")
     table_html = _create_html_table(rows)
 
     full_html = (
@@ -665,7 +678,7 @@ def process_csv_to_excel(csv_path: Path) -> ProcessingResult:
     if not rows:
         raise ValueError("Die CSV-Datei enthält keine Datenzeilen.")
 
-    exam_date = _parse_exam_date(rows)
+    exam_date = _resolve_reference_datetime(csv_path, rows)
     output_xlsx = _build_output_path(csv_path)
     _write_excel(rows, output_xlsx)
 
