@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import html
 import base64
+import ctypes
 import json
 import re
 import os
@@ -32,6 +33,9 @@ DURATION_COLUMN = "Benötigte Zeit"
 OUTPUT_COLUMNS = CSV_COLUMNS + [DURATION_COLUMN]
 NBSP = "\u00A0"
 FONT_STYLE_TOKEN = "__ICDL_FONT_STYLE__"
+
+DESKTOP_FOLDERID = "{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}"
+DOWNLOADS_FOLDERID = "{374DE290-123F-4565-9164-39C4925E467B}"
 
 
 def _get_app_dir() -> Path:
@@ -663,15 +667,79 @@ def _archive_output_xlsx(output_xlsx: Path) -> Path:
     return archive_target
 
 
+def _get_windows_known_folder_path(folder_id: str) -> Path | None:
+    """Liest bekannte Windows-Ordner (z. B. Desktop/Downloads) robust aus."""
+    if not sys.platform.startswith("win"):
+        return None
+
+    class GUID(ctypes.Structure):
+        _fields_ = [
+            ("Data1", ctypes.c_uint32),
+            ("Data2", ctypes.c_uint16),
+            ("Data3", ctypes.c_uint16),
+            ("Data4", ctypes.c_ubyte * 8),
+        ]
+
+    try:
+        import uuid
+
+        parsed = uuid.UUID(folder_id)
+        guid = GUID()
+        guid.Data1 = parsed.fields[0]
+        guid.Data2 = parsed.fields[1]
+        guid.Data3 = parsed.fields[2]
+        tail = parsed.bytes[8:]
+        for idx, value in enumerate(tail):
+            guid.Data4[idx] = value
+
+        path_ptr = ctypes.c_wchar_p()
+        shell32 = ctypes.windll.shell32
+        ole32 = ctypes.windll.ole32
+
+        hresult = shell32.SHGetKnownFolderPath(ctypes.byref(guid), 0, None, ctypes.byref(path_ptr))
+        if hresult != 0 or not path_ptr.value:
+            return None
+
+        folder_path = Path(path_ptr.value)
+        ole32.CoTaskMemFree(path_ptr)
+        return folder_path
+    except Exception:
+        return None
+
+
+def _get_windows_desktop_downloads_dirs() -> list[Path]:
+    """Ermittelt Desktop/Downloads inkl. OneDrive-Umleitungen."""
+    home_dir = Path.home()
+    candidates: list[Path] = []
+
+    desktop_known = _get_windows_known_folder_path(DESKTOP_FOLDERID)
+    downloads_known = _get_windows_known_folder_path(DOWNLOADS_FOLDERID)
+    if desktop_known is not None:
+        candidates.append(desktop_known)
+    if downloads_known is not None:
+        candidates.append(downloads_known)
+
+    # Fallbacks (inkl. häufiger OneDrive-Varianten)
+    candidates.extend([home_dir / "Desktop", home_dir / "Downloads"])
+    for env_var in ("OneDrive", "OneDriveCommercial", "OneDriveConsumer"):
+        one_drive_root = os.getenv(env_var)
+        if one_drive_root:
+            root_path = Path(one_drive_root)
+            candidates.append(root_path / "Desktop")
+            candidates.append(root_path / "Downloads")
+
+    return candidates
+
+
 def _get_csv_search_dirs() -> list[Path]:
     """Reihenfolge der CSV-Suche: App-/EXE-Ordner, Desktop, Downloads."""
     app_dir = _get_app_dir()
-    home_dir = Path.home()
-    candidates = [
-        app_dir,
-        home_dir / "Desktop",
-        home_dir / "Downloads",
-    ]
+    candidates = [app_dir]
+    if sys.platform.startswith("win"):
+        candidates.extend(_get_windows_desktop_downloads_dirs())
+    else:
+        home_dir = Path.home()
+        candidates.extend([home_dir / "Desktop", home_dir / "Downloads"])
 
     dirs: list[Path] = []
     seen: set[str] = set()
@@ -750,7 +818,7 @@ def _is_file_modified_today(path: Path) -> bool:
 def run_gui() -> None:
     root = tk.Tk()
     root.title(APP_TITLE)
-    root.geometry("520x290")
+    root.geometry("520x320")
     root.resizable(False, False)
 
     frame = tk.Frame(root, padx=16, pady=16)
@@ -760,12 +828,14 @@ def run_gui() -> None:
         frame,
         text=(
             "Ablauf:\n"
-            "1) Prüfungsergebnisse (CSV) werden automatisch verarbeitet, wenn eine tagesaktuelle "
-            "examinations.csv neben der App, auf dem Desktop oder in Downloads gefunden wird.\n"
+            "1) Prüfungsergebnisse (ICDL) werden automatisch verarbeitet,\n"
+            "   wenn eine tagesaktuelle examinations.csv neben der App,\n"
+            "   auf dem Desktop (auch OneDrive) oder in Downloads gefunden wird.\n"
             "2) Alternativ: CSV manuell auswählen\n"
             "3) Excel-Datei erzeugen\n"
             "4) Outlook-Mail mit Tabellenkopie in Vorschau öffnen"
         ),
+        wraplength=480,
         justify="left",
         anchor="w",
     )
