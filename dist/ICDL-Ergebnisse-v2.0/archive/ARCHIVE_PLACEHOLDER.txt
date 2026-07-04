@@ -1,1 +1,0 @@
-﻿Platzhalter, damit der archive-Ordner im Release-ZIP enthalten ist.
