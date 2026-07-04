@@ -190,10 +190,28 @@ def _resolve_reference_datetime(csv_path: Path, rows: list[dict[str, str]]) -> d
         return _parse_exam_date(rows)
 
 
-def _build_output_path(csv_path: Path) -> Path:
+def _build_output_filename(csv_path: Path) -> str:
     mtime = datetime.fromtimestamp(csv_path.stat().st_mtime)
-    file_name = f"ICDL-Ergebnisse_{mtime:%Y%m%d_%H%M%S}.xlsx"
-    return _get_app_dir() / file_name
+    return f"ICDL-Ergebnisse_{mtime:%Y%m%d_%H%M%S}.xlsx"
+
+
+def _build_output_path(csv_path: Path) -> Path:
+    file_name = _build_output_filename(csv_path)
+    archive_dir = _get_app_dir() / "archive"
+    archive_dir.mkdir(parents=True, exist_ok=True)
+
+    candidate = archive_dir / file_name
+    if not candidate.exists():
+        return candidate
+
+    # Kollisionen (z. B. Wiederverarbeitung derselben CSV oder Dateilock durch Outlook) vermeiden.
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    for i in range(1, 1000):
+        alternative = archive_dir / f"ICDL-Ergebnisse_{stamp}_{i:03d}.xlsx"
+        if not alternative.exists():
+            return alternative
+
+    raise RuntimeError("Konnte keinen freien Dateinamen für den Excel-Export im archive-Ordner finden.")
 
 
 def _find_user_excel_template() -> Path | None:
@@ -1385,12 +1403,14 @@ def _describe_csv_location(csv_path: Path) -> str:
 def _is_likely_duplicate_processing(csv_path: Path) -> bool:
     """Prüft, ob diese CSV mit demselben Zeitstempel wahrscheinlich bereits verarbeitet wurde."""
     try:
-        expected_output = _build_output_path(csv_path)
+        expected_name = _build_output_filename(csv_path)
     except Exception:
         return False
 
-    archive_target = _get_app_dir() / "archive" / expected_output.name
-    return archive_target.exists()
+    app_dir = _get_app_dir()
+    archive_target = app_dir / "archive" / expected_name
+    legacy_root_target = app_dir / expected_name
+    return archive_target.exists() or legacy_root_target.exists()
 
 
 def _resolve_docs_dir() -> Path | None:
