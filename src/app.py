@@ -7,6 +7,7 @@ import ctypes
 import json
 import re
 import os
+import shutil
 from copy import copy
 from dataclasses import dataclass
 from datetime import datetime
@@ -977,7 +978,44 @@ def _archive_output_xlsx(output_xlsx: Path) -> Path:
     except Exception:
         pass
 
-    os.replace(output_xlsx, archive_target)
+    if not output_xlsx.exists() and archive_target.exists():
+        return archive_target
+
+    last_error: Exception | None = None
+    for _ in range(6):
+        try:
+            os.replace(output_xlsx, archive_target)
+            return archive_target
+        except Exception as exc:
+            last_error = exc
+            time.sleep(0.25)
+
+    # Fallback: kopieren + Quelle löschen (z. B. bei kurzzeitigen Locks/OneDrive-Rennen)
+    try:
+        shutil.copy2(output_xlsx, archive_target)
+        output_xlsx.unlink(missing_ok=True)
+        return archive_target
+    except Exception as exc:
+        if last_error is not None:
+            raise RuntimeError(
+                f"Excel-Datei konnte nicht nach archive verschoben werden: {last_error}; Fallback fehlgeschlagen: {exc}"
+            ) from exc
+        raise
+
+
+def _consolidate_root_exports_to_archive() -> int:
+    """Verschiebt liegengebliebene Export-Dateien aus dem App-/EXE-Root nach ./archive."""
+    app_dir = _get_app_dir()
+    moved = 0
+    for candidate in app_dir.glob("ICDL-Ergebnisse_*.xlsx"):
+        if not candidate.is_file():
+            continue
+        try:
+            _archive_output_xlsx(candidate)
+            moved += 1
+        except Exception as exc:
+            _log_debug(f"Konsolidierung nach archive fehlgeschlagen ({candidate}): {exc}")
+    return moved
     return archive_target
 
 
@@ -1168,6 +1206,10 @@ def _is_file_modified_today(path: Path) -> bool:
 
 
 def run_gui() -> None:
+    moved_on_start = _consolidate_root_exports_to_archive()
+    if moved_on_start > 0:
+        _log_debug(f"Beim Start {moved_on_start} Export-Datei(en) aus dem App-Ordner nach archive verschoben.")
+
     _prune_archives_on_startup(keep_last=10)
 
     root = tk.Tk()
