@@ -14,13 +14,14 @@ dist/
 release/*
 !release/RELEASE_NOTES_v*.md
 
-# Demo-Ordner (Quelle + Artefakte)
-demo/
-**/demo/
-
 # CSV-Dateien
 *.csv
 **/*.csv
+
+# Demo darf versioniert werden (inkl. Demo-CSV)
+!demo/
+!demo/**
+!demo/*.csv
 
 # Logs
 logs/
