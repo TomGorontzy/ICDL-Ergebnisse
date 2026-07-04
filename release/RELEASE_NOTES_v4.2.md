@@ -1,4 +1,4 @@
-﻿# Release Notes v4.1
+﻿# Release Notes v4.2
 
 Datum: 2026-07-04
 
@@ -24,22 +24,22 @@ Datum: 2026-07-04
 
 ## Artefakte
 
-- Build-Verzeichnis: dist/ICDL-Ergebnisse-v4.1/
-- EXE: dist/ICDL-Ergebnisse-v4.1/ICDL-Ergebnisse.exe
+- Build-Verzeichnis: dist/ICDL-Ergebnisse-v4.2/
+- EXE: dist/ICDL-Ergebnisse-v4.2/ICDL-Ergebnisse.exe
 - Dokumentation: dist/<Build>/docs/
-- Archivdaten: dist/ICDL-Ergebnisse-v4.1/archive/
-- Release-ZIP: release/ICDL-Ergebnisse-v4.1.zip
+- Archivdaten: dist/ICDL-Ergebnisse-v4.2/archive/
+- Release-ZIP: release/ICDL-Ergebnisse-v4.2.zip
 
 ## Enthaltene Commits (aktuelle Historie)
 
+- `103602c` fix: write export directly into archive to avoid root leftovers
+- `c53a179` release: v4.1
 - `eda7a5b` fix: remove root export after successful archive copy
 - `493916e` release: v4.0
 - `5386685` fix: mark invalid duration and log time anomalies
-- `d496b10` fix: robust duration field detection and archive retries
-- `843e982` release: v3.8
 
 ## Technische Build-Informationen
 
-- Build-Datum: 2026-07-04 20:54:25
+- Build-Datum: 2026-07-04 20:58:56
 - Build-Modus: PyInstaller --noconfirm
 - EXE-Name: ICDL-Ergebnisse.exe
