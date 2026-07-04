@@ -33,6 +33,7 @@ DURATION_COLUMN = "Benötigte Zeit"
 OUTPUT_COLUMNS = CSV_COLUMNS + [DURATION_COLUMN]
 NBSP = "\u00A0"
 FONT_STYLE_TOKEN = "__ICDL_FONT_STYLE__"
+DATETIME_FORMATS = ("%d.%m.%Y %H:%M", "%d.%m.%Y %H:%M:%S", "%d.%m.%Y")
 
 DESKTOP_FOLDERID = "{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}"
 DOWNLOADS_FOLDERID = "{374DE290-123F-4565-9164-39C4925E467B}"
@@ -94,15 +95,26 @@ def _read_examinations_csv(csv_path: Path) -> list[dict[str, str]]:
 
 
 def _parse_exam_date(rows: list[dict[str, str]]) -> datetime:
+    parsed_values: list[datetime] = []
+
     for row in rows:
         value = row.get("Beginn", "")
-        if not value:
-            continue
-        try:
-            return datetime.strptime(value, "%d.%m.%Y %H:%M")
-        except ValueError:
-            continue
-    raise ValueError("Kein gültiges Prüfungsdatum in Spalte 'Beginn' gefunden.")
+        parsed = _parse_datetime(value)
+        if parsed is not None:
+            parsed_values.append(parsed)
+
+    if not parsed_values:
+        raise ValueError("Kein gültiges Prüfungsdatum in Spalte 'Beginn' gefunden.")
+
+    unique_dates = {dt.date() for dt in parsed_values}
+    if len(unique_dates) > 1:
+        _log_debug(
+            "Mehrere Prüfungsdaten in CSV gefunden; verwende das neueste Datum für den Betreff: "
+            f"{max(parsed_values):%d.%m.%Y}"
+        )
+
+    # Für den Mail-Betreff soll das neueste Prüfungsdatum verwendet werden.
+    return max(parsed_values)
 
 
 def _build_output_path(csv_path: Path) -> Path:
@@ -170,10 +182,19 @@ def _resolve_excel_base_font() -> Font | None:
 def _parse_datetime(value: str) -> datetime | None:
     if not value:
         return None
-    try:
-        return datetime.strptime(value, "%d.%m.%Y %H:%M")
-    except ValueError:
+    raw = value.strip()
+    if not raw:
         return None
+
+    for fmt in DATETIME_FORMATS:
+        try:
+            parsed = datetime.strptime(raw, fmt)
+            if fmt == "%d.%m.%Y":
+                return datetime(parsed.year, parsed.month, parsed.day, 0, 0)
+            return parsed
+        except ValueError:
+            continue
+    return None
 
 
 def _compute_duration_minutes(row: dict[str, str]) -> int | None:
