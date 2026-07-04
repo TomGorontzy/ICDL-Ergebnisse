@@ -784,6 +784,44 @@ def _resolve_docs_dir() -> Path | None:
     return None
 
 
+def _resolve_window_icon_path() -> Path | None:
+    """Ermittelt eine vorhandene ICO-Datei für das Fenster-Icon."""
+    runtime_dir = Path(getattr(sys, "_MEIPASS", _get_app_dir()))
+    app_dir = _get_app_dir()
+    candidates = [
+        runtime_dir / "app_icon.ico",
+        app_dir / "app_icon.ico",
+        Path(__file__).resolve().parent / "app_icon.ico",
+    ]
+
+    for candidate in candidates:
+        if candidate.exists() and candidate.is_file():
+            return candidate
+    return None
+
+
+def _apply_window_icon(root: tk.Tk) -> None:
+    """Setzt das Icon der Titelleiste (best effort, primär Windows)."""
+    icon_path = _resolve_window_icon_path()
+
+    if icon_path is not None:
+        try:
+            root.iconbitmap(default=str(icon_path))
+            _log_debug(f"Fenster-Icon gesetzt: {icon_path}")
+            return
+        except Exception as exc:
+            _log_debug(f"Fenster-Icon aus app_icon.ico konnte nicht gesetzt werden: {exc}")
+
+    # Fallback: Im EXE-Betrieb das EXE-Icon nutzen.
+    if getattr(sys, "frozen", False):
+        try:
+            root.iconbitmap(default=str(Path(sys.executable)))
+            _log_debug("Fenster-Icon aus EXE verwendet.")
+            return
+        except Exception as exc:
+            _log_debug(f"Fenster-Icon aus EXE konnte nicht gesetzt werden: {exc}")
+
+
 def _pick_csv_file(initial_dir: Path) -> str:
     """Öffnet den CSV-Dialog mit sinnvoller Vorbelegung.
 
@@ -818,46 +856,99 @@ def _is_file_modified_today(path: Path) -> bool:
 def run_gui() -> None:
     root = tk.Tk()
     root.title(APP_TITLE)
-    root.geometry("520x320")
+    _apply_window_icon(root)
+    root.geometry("700x500")
     root.resizable(False, False)
+    root.configure(bg="#F3F6FB")
 
-    frame = tk.Frame(root, padx=16, pady=16)
+    style = ttk.Style(root)
+    try:
+        style.theme_use("clam")
+    except Exception:
+        pass
+
+    style.configure("App.TFrame", background="#F3F6FB")
+    style.configure("Card.TFrame", background="#FFFFFF", relief="solid", borderwidth=1)
+    style.configure("Header.TFrame", background="#EEF4FF")
+    style.configure("Action.TFrame", background="#FFFFFF")
+    style.configure("Title.TLabel", background="#EEF4FF", foreground="#111827", font=("Segoe UI", 15, "bold"))
+    style.configure("Subtitle.TLabel", background="#EEF4FF", foreground="#4B5563", font=("Segoe UI", 10))
+    style.configure("Body.TLabel", background="#FFFFFF", foreground="#374151", font=("Segoe UI", 10))
+    style.configure("Section.TLabel", background="#FFFFFF", foreground="#1F2937", font=("Segoe UI", 10, "bold"))
+    style.configure("Badge.TLabel", background="#DCE8FF", foreground="#1D4ED8", font=("Segoe UI", 9, "bold"), padding=(8, 4))
+    style.configure("Status.TLabel", background="#FFFFFF", foreground="#111827", font=("Segoe UI", 10, "bold"))
+    style.configure(
+        "Primary.TButton",
+        font=("Segoe UI", 10, "bold"),
+        padding=(12, 9),
+    )
+    style.map("Primary.TButton", background=[("active", "#2563EB")])
+    style.configure("Secondary.TButton", font=("Segoe UI", 10), padding=(12, 8))
+    style.configure("App.TLabelframe", background="#FFFFFF", borderwidth=0)
+    style.configure("App.TLabelframe.Label", background="#FFFFFF", foreground="#1F2937", font=("Segoe UI", 10, "bold"))
+
+    frame = ttk.Frame(root, style="App.TFrame", padding=18)
     frame.pack(fill="both", expand=True)
 
-    info = tk.Label(
-        frame,
+    card = ttk.Frame(frame, style="Card.TFrame", padding=0)
+    card.pack(fill="both", expand=True)
+
+    header = ttk.Frame(card, style="Header.TFrame", padding=(16, 14))
+    header.pack(fill="x")
+
+    title_row = ttk.Frame(header, style="Header.TFrame")
+    title_row.pack(fill="x")
+
+    title_label = ttk.Label(title_row, text=APP_TITLE, style="Title.TLabel", anchor="w")
+    title_label.pack(side="left", fill="x", expand=True)
+
+    badge = ttk.Label(title_row, text="AUTOMATISIERT", style="Badge.TLabel")
+    badge.pack(side="right", anchor="e")
+
+    subtitle_label = ttk.Label(
+        header,
+        text="CSV einlesen, Excel erzeugen und Outlook-Vorschau automatisch vorbereiten",
+        style="Subtitle.TLabel",
+        anchor="w",
+    )
+    subtitle_label.pack(fill="x", pady=(4, 0))
+
+    content = ttk.Frame(card, style="Card.TFrame", padding=(16, 14))
+    content.pack(fill="both", expand=True)
+
+    info_header = ttk.Label(content, text="Ablauf", style="Section.TLabel", anchor="w")
+    info_header.pack(fill="x", pady=(0, 6))
+
+    info_box = ttk.LabelFrame(content, style="App.TLabelframe", text="Schritte", padding=(12, 10))
+    info_box.pack(fill="x", pady=(0, 12))
+
+    info = ttk.Label(
+        info_box,
         text=(
-            "Ablauf:\n"
-            "1) Prüfungsergebnisse (ICDL) werden automatisch verarbeitet,\n"
-            "   wenn eine tagesaktuelle examinations.csv neben der App,\n"
-            "   auf dem Desktop (auch OneDrive) oder in Downloads gefunden wird.\n"
+            "1) Tagesaktuelle examinations.csv wird automatisch verarbeitet\n"
+            "   (App-Ordner, Desktop inkl. OneDrive, Downloads)\n"
             "2) Alternativ: CSV manuell auswählen\n"
             "3) Excel-Datei erzeugen\n"
             "4) Outlook-Mail mit Tabellenkopie in Vorschau öffnen"
         ),
-        wraplength=480,
+        style="Body.TLabel",
+        wraplength=620,
         justify="left",
         anchor="w",
     )
-    info.pack(fill="x", pady=(0, 12))
+    info.pack(fill="x")
 
-    progress_style = ttk.Style(root)
-    try:
-        progress_style.theme_use("clam")
-    except Exception:
-        pass
-
-    progress_style.configure(
+    style.configure(
         "Processing.Horizontal.TProgressbar",
         troughcolor="#E5E7EB",
         background="#2D6CDF",
     )
-    progress_style.configure(
+    style.configure(
         "Success.Horizontal.TProgressbar",
         troughcolor="#E5E7EB",
         background="#1F9D55",
     )
-    progress_style.configure(
+    style.configure(
         "Error.Horizontal.TProgressbar",
         troughcolor="#E5E7EB",
         background="#C62828",
@@ -874,8 +965,8 @@ def run_gui() -> None:
     def _set_busy(phase: str, status_text: str) -> None:
         running_flag["busy"] = True
         running_flag["phase"] = phase
-        run_btn.configure(state="disabled")
-        docs_btn.configure(state="disabled")
+        run_btn.state(["disabled"])
+        docs_btn.state(["disabled"])
         if phase == "csv":
             _set_progress(35.0)
         elif phase == "outlook":
@@ -887,8 +978,8 @@ def run_gui() -> None:
     def _set_idle(status_text: str) -> None:
         running_flag["busy"] = False
         running_flag["phase"] = "idle"
-        run_btn.configure(state="normal")
-        docs_btn.configure(state="normal")
+        run_btn.state(["!disabled"])
+        docs_btn.state(["!disabled"])
         if status_text.startswith("Fertig"):
             _set_progress(100.0, "Success.Horizontal.TProgressbar")
         elif status_text == "Fehler":
@@ -987,24 +1078,37 @@ def run_gui() -> None:
             _log_debug(f"Öffnen des docs-Ordners fehlgeschlagen: {exc}")
             messagebox.showerror(APP_TITLE, f"Der docs-Ordner konnte nicht geöffnet werden:\n{exc}")
 
-    run_btn = tk.Button(frame, text="CSV einlesen und Mail-Vorschau erzeugen", command=on_run, height=2)
-    run_btn.pack(fill="x", pady=(0, 12))
+    action_frame = ttk.Frame(content, style="Action.TFrame")
+    action_frame.pack(fill="x", pady=(4, 10))
 
-    docs_btn = tk.Button(frame, text="Dokumentation (docs) öffnen", command=on_open_docs, height=1)
-    docs_btn.pack(fill="x", pady=(0, 12))
+    run_btn = ttk.Button(
+        action_frame,
+        text="CSV einlesen und Mail-Vorschau erzeugen",
+        command=on_run,
+        style="Primary.TButton",
+    )
+    run_btn.pack(side="left", fill="x", expand=True, padx=(0, 6))
 
-    status = tk.Label(frame, textvariable=status_var, anchor="w")
-    status.pack(fill="x")
+    docs_btn = ttk.Button(
+        action_frame,
+        text="Dokumentation öffnen",
+        command=on_open_docs,
+        style="Secondary.TButton",
+    )
+    docs_btn.pack(side="left", fill="x", expand=True, padx=(6, 0))
+
+    status = ttk.Label(content, textvariable=status_var, style="Status.TLabel", anchor="w")
+    status.pack(fill="x", pady=(2, 0))
 
     progress = ttk.Progressbar(
-        frame,
+        content,
         orient="horizontal",
         mode="determinate",
         maximum=100,
         variable=progress_var,
         style="Processing.Horizontal.TProgressbar",
     )
-    progress.pack(fill="x", pady=(8, 0))
+    progress.pack(fill="x", pady=(8, 2))
 
     # Auto-Start: Tagesaktuelle examinations.csv in App-/EXE-Verzeichnis, Desktop oder Downloads verarbeiten.
     def _auto_start_if_daily_csv_available() -> None:

@@ -5,13 +5,14 @@ import os
 ROOT = os.path.abspath(SPECPATH)
 ICON_PATH = os.path.join(ROOT, 'app_icon.ico')
 EXE_ICON = ICON_PATH if os.path.exists(ICON_PATH) else None
+DATA_FILES = [(ICON_PATH, '.')] if os.path.exists(ICON_PATH) else []
 
 
 a = Analysis(
     [os.path.join(ROOT, 'app.py')],
     pathex=[ROOT],
     binaries=[],
-    datas=[],
+    datas=DATA_FILES,
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
