@@ -11,6 +11,10 @@ Diese App erledigt folgenden Ablauf:
    - Inhalt: kopierte Datentabelle im Nachrichtentext
 4. E-Mail als Vorschau öffnen
 
+Beispiel-/Demodaten liegen unter:
+
+- `demo/examinations.csv`
+
 ## Start
 
 ```powershell
@@ -48,6 +52,8 @@ Optional ohne Markdownlint-Prüfung:
 Jedes neue Build wird in einen eigenen Unterordner geschrieben:
 
 - `dist/ICDL-Ergebnisse-v<major>.<minor>/`
+
+Der Ordner `demo/` wird in Build und Release mit übernommen.
 
 Vor jedem Build läuft automatisch eine Markdownlint-Routine (Auto-Fix + Verifikation).
 
