@@ -23,6 +23,12 @@ Die Anwendung `ICDL-Ergebnisse` automatisiert den Ablauf:
 
 - `dist\ICDL-Ergebnisse.exe` starten
 
+## Bedienung
+
+- **App starten**: verarbeitet eine ausgewählte oder automatisch gefundene `examinations.csv`.
+- **Automatik wiederholen**: sucht erneut in den drei Automatik-Speicherorten nach aktualisierten `examinations.csv` und verarbeitet diese automatisch, falls sie noch nicht als erledigt erkannt wurden.
+- **Dokumentation öffnen**: öffnet den Dokumentationsordner im Explorer.
+
 ### Verhalten beim Start
 
 - Beim Auto-Start wird in dieser Reihenfolge gesucht:
@@ -34,6 +40,10 @@ Die Anwendung `ICDL-Ergebnisse` automatisiert den Ablauf:
 - Zusätzlich wird beim Start der Ordner `archive\` automatisch bereinigt:
   - Es bleiben nur die **10 neuesten** Excel-Dateien (`*.xlsx`) erhalten.
   - Ältere Excel-Dateien werden automatisch gelöscht.
+
+## Diagramme
+
+Weitere Ablauf- und Architekturdiagramme sind in `docs/DOKUMENTATION_DIAGRAMME.md` dokumentiert.
 
 ## Ergebnis
 

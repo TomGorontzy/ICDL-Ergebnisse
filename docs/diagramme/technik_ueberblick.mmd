@@ -1,0 +1,35 @@
+flowchart LR
+    subgraph Eingabeorte
+        A1[App-/EXE-Ordner]
+        A2[Desktop]
+        A3[Downloads]
+    end
+
+    subgraph Anwendung
+        B1[GUI / Tkinter]
+        B2[CSV-Normalisierung]
+        B3[Excel-Erzeugung\nopenpyxl]
+        B4[Outlook-Vorschau\nPowerShell + COM]
+        B5[Archivierung\narchive/]
+    end
+
+    subgraph Artefakte
+        C1[examinations.csv]
+        C2[ICDL-Ergebnisse_*.xlsx]
+        C3[archive/ICDL-Ergebnisse_*.xlsx]
+        C4[Release-ZIP + Release Notes]
+    end
+
+    A1 --> C1
+    A2 --> C1
+    A3 --> C1
+    B1 --> B2
+    B2 --> B3
+    B3 --> C2
+    C2 --> B4
+    B4 --> B5
+    B5 --> C3
+    C3 --> C4
+    B1 -->|Automatik wiederholen| A1
+    B1 -->|Automatik wiederholen| A2
+    B1 -->|Automatik wiederholen| A3

@@ -1,0 +1,14 @@
+flowchart TD
+    A[Start: ICDL-Ergebnisse öffnen] --> B{Aktualisierte examinations.csv gefunden?}
+    B -- Ja --> C[Datei prüfen und Start bestätigen]
+    B -- Nein --> D[CSV manuell auswählen]
+    C --> E[CSV verarbeiten]
+    D --> E
+    E --> F[Excel-Datei erzeugen]
+    F --> G[Outlook-Vorschau mit Tabelleninhalt öffnen]
+    G --> H[Excel direkt in archive ablegen]
+    H --> I[Automatik wiederholen verfügbar]
+    I --> J[Erneute Suche in App-, Desktop- und Downloads-Ordner]
+    J --> K{Neue oder aktualisierte CSV gefunden?}
+    K -- Ja --> E
+    K -- Nein --> L[Keine weitere Aktion]

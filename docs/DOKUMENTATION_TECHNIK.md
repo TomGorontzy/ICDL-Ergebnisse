@@ -8,6 +8,14 @@
 - Excel-Erzeugung (`openpyxl`)
 - Outlook-Integration über COM (PowerShell + Outlook/WordEditor)
 
+## Diagramme
+
+- Die zentralen Abläufe sind in `docs/DOKUMENTATION_DIAGRAMME.md` als Mermaid-Diagramme und PNG-Dateien dokumentiert.
+- Die neue Schaltfläche **Automatik wiederholen** triggert dieselbe Suchreihenfolge wie der Auto-Start:
+  1. App-/EXE-Ordner
+  2. Desktop
+  3. Downloads
+
 ## Datenfluss
 
 1. CSV laden und normalisieren
@@ -28,6 +36,8 @@ CSV-Suchreihenfolge (`examinations.csv`):
 3. benutzerspezifischer Downloads-Ordner (`%USERPROFILE%\\Downloads`)
 
 Diese Reihenfolge gilt sowohl für die Dialog-Vorbelegung als auch für den Auto-Start (tagesaktuelle Datei).
+
+Die gleiche Reihenfolge wird auch von der Funktion **Automatik wiederholen** verwendet.
 
 ## Build-Prozess
 

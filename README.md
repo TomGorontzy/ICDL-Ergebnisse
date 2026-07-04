@@ -14,20 +14,25 @@ Diese App erledigt folgenden Ablauf:
    - Betreff: `ICDL-Ergebnisse der Prüfung vom DD.MM.YYYY`
    - Inhalt: kopierte Datentabelle im Nachrichtentext
 5. E-Mail als Vorschau öffnen
-6. Erzeugte Excel-Datei in `archive/` verschieben
-7. Beim Start automatische Archivpflege: In `archive/` bleiben nur die 10 neuesten Excel-Dateien erhalten
+6. Schaltfläche `Automatik wiederholen` nutzen
+   - Sucht erneut in den drei Automatik-Speicherorten nach aktualisierten `examinations.csv`
+   - Verarbeitet gefundene Dateien automatisch, wenn sie noch nicht als erledigt erkannt wurden
+7. Erzeugte Excel-Datei direkt in `archive/` ablegen
+8. Beim Start automatische Archivpflege: In `archive/` bleiben nur die 10 neuesten Excel-Dateien erhalten
 
-## Neu in v2.6
+## Neu in v4.3
 
 - Fenster-Titelleisten-Icon robust eingebunden (inkl. Runtime-Fallback im EXE-Betrieb)
 - GUI-Layout modernisiert (ruhigeres Card-/Header-Design, klarere Typografie, bessere Abstände)
 - Mehr Übersicht im Ablaufbereich und optimierte Aktionsleiste
 - Excel: Neues Blatt `Neue Daten` mit laufübergreifender Sammlung und Zeitstempel `Erfasst am`
 - Archivpflege: Beim Start werden alte Excel-Dateien in `archive/` automatisch bereinigt (nur letzte 10 bleiben)
+- Neue Schaltfläche `Automatik wiederholen`: findet aktualisierte `examinations.csv` an den drei Automatik-Speicherorten und verarbeitet sie automatisch
+- Exportdateien werden direkt im `archive/`-Ordner erzeugt, damit kein Rest im EXE-Root bleibt
 
 Aktuelles Release:
 
-- `v2.6`: <https://github.com/TomGorontzy/ICDL-Ergebnisse/releases/tag/v2.6>
+- `v4.3`: <https://github.com/TomGorontzy/ICDL-Ergebnisse/releases/tag/v4.3>
 
 Beispiel-/Demodaten liegen unter:
 
@@ -46,6 +51,7 @@ python src/app.py
 
 - Anwender: `docs/DOKUMENTATION_ANWENDER.md`
 - Technik: `docs/DOKUMENTATION_TECHNIK.md`
+- Diagramme: `docs/DOKUMENTATION_DIAGRAMME.md` (inkl. Mermaid-Quellen und PNG-Dateien)
 
 ## Build
 
