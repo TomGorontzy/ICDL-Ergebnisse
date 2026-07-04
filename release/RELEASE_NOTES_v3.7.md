@@ -1,4 +1,4 @@
-﻿# Release Notes v3.6
+﻿# Release Notes v3.7
 
 Datum: 2026-07-04
 
@@ -24,22 +24,22 @@ Datum: 2026-07-04
 
 ## Artefakte
 
-- Build-Verzeichnis: dist/ICDL-Ergebnisse-v3.6/
-- EXE: dist/ICDL-Ergebnisse-v3.6/ICDL-Ergebnisse.exe
+- Build-Verzeichnis: dist/ICDL-Ergebnisse-v3.7/
+- EXE: dist/ICDL-Ergebnisse-v3.7/ICDL-Ergebnisse.exe
 - Dokumentation: dist/<Build>/docs/
-- Archivdaten: dist/ICDL-Ergebnisse-v3.6/archive/
-- Release-ZIP: release/ICDL-Ergebnisse-v3.6.zip
+- Archivdaten: dist/ICDL-Ergebnisse-v3.7/archive/
+- Release-ZIP: release/ICDL-Ergebnisse-v3.7.zip
 
 ## Enthaltene Commits (aktuelle Historie)
 
+- `b324be7` fix: broaden datetime parsing for duration calculation
+- `5c8b64c` release: v3.6
 - `b952a97` fix: always compute duration for partial csv rows
 - `f7dc324` chore: ignore generated export xlsx files
 - `d3dc079` release: v3.5
-- `9e77c2f` fix: preserve existing duration values in export sheet
-- `8b1da9e` release: v3.4
 
 ## Technische Build-Informationen
 
-- Build-Datum: 2026-07-04 20:30:37
+- Build-Datum: 2026-07-04 20:35:58
 - Build-Modus: PyInstaller --noconfirm
 - EXE-Name: ICDL-Ergebnisse.exe
