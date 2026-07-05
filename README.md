@@ -32,7 +32,7 @@ Diese App erledigt folgenden Ablauf:
 
 Aktuelles Release:
 
-- `v4.3`: <https://github.com/TomGorontzy/ICDL-Ergebnisse/releases/tag/v4.3>
+- `v4.3`: <https://github.com/GoroTech-Tools/ICDL-Ergebnisse/releases/tag/v4.3>
 
 Beispiel-/Demodaten liegen unter:
 
